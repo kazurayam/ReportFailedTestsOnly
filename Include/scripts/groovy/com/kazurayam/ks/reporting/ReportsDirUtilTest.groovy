@@ -19,9 +19,9 @@ public class ReportsDirUtilTest {
 
 	@Test
 	public void test_getLatestTestSuiteReportDirOf() {
-		ReportsDirUtil util = new ReportsDirUtil(reportsDir)
+		ReportsDirUtil rdu = new ReportsDirUtil(reportsDir)
 		String testSuiteName = "TS1"
-		Path dir = util.getLatestTestSuiteReportDirOf(testSuiteName)
+		Path dir = rdu.getLatestTestSuiteReportDirOf(testSuiteName)
 		println dir.toString()
 		assertNotNull(dir)
 	}

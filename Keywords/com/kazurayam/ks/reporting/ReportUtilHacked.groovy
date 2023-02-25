@@ -79,9 +79,9 @@ $(function() {
 });
     </script>\n
 ''');
-		
+
 		htmlSb.append("<!-- 2 ################################################################### -->\n");
-		
+
 		readFileToStringBuilder(ResourceLoader.HTML_TEMPLATE_CONTENT, htmlSb);
 		htmlSb.append("<!-- 3 ################################################################### -->\n");
 
@@ -102,7 +102,7 @@ $(function() {
 
 
 
-	
+
 	/**
 	 * Unfortunately ReportUtil#readFileToStringBuilder() method is private.
 	 * Therefore I had to copy it here 

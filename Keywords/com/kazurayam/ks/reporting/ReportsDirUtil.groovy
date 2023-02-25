@@ -22,17 +22,31 @@ public class ReportsDirUtil {
 		return visitor.getLatestTestSuiteReportDir()
 	}
 
-	
+
 	/*
 	 * 
 	 */
 	class ReportsDirVisitor extends SimpleFileVisitor<Path> {
 		private String testSuiteName
 		private List<Path> dirs
-		
+
 		public ReportsDirVisitor(String tsn) {
+			Objects.requireNonNull(tsn)
 			this.testSuiteName = tsn
 			this.dirs = new ArrayList<Path>()
+		}
+
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+			if (e == null) {
+				if (dir.getParent().getFileName().toString() == testSuiteName) {
+					dirs.add(dir)
+				}
+				return FileVisitResult.CONTINUE
+			} else {
+				// directory iteration failed
+				throw e;
+			}
 		}
 		
 		public Path getLatestTestSuiteReportDir() {
@@ -40,18 +54,6 @@ public class ReportsDirUtil {
 				return dirs.get(dirs.size() - 1)
 			} else {
 				return null
-			}
-		}
-		
-		@Override
-		public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
-			if (e == null) {
-				if (dir.getParent().getFileName().toString() == testSuiteName) {
-					dirs.add(dir)
-				}
-			} else {
-				// directory iteration failed
-				throw e;
 			}
 		}
 	}
