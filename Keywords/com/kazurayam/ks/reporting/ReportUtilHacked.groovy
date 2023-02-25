@@ -48,6 +48,26 @@ public class ReportUtilHacked {
 div.hidden {
     display: none;
 }
+button#CTRL_PASSED_TESTS {
+    color: #fff;
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    user-select: none;
+    border: 1px sold transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+button.success {
+    background-color: #28a745;
+}
+button.danger {
+    background-color: #dc3545;
+}
     </style>
     <script type="text/javascript">
 $(function() {
@@ -72,12 +92,17 @@ $(function() {
         });
         if (flag) {
             $(this).html('Hide the PASSED')
+            $(this).removeClass('success')
+            $(this).addClass('danger')
         } else {
             $(this).html('Show the PASSED')
+            $(this).removeClass('danger')
+            $(this).addClass('success')
         }
      })
 });
-    </script>\n
+    </script>
+\n
 ''');
 
 		htmlSb.append("<!-- 2 ################################################################### -->\n");
@@ -88,7 +113,7 @@ $(function() {
 		StringBuilder sb1 = StringBuilderUtil.removeLastMatch(htmlSb, "</html>")
 		StringBuilder sb2 = StringBuilderUtil.removeLastMatch(sb1, "</body>")
 		sb2.append('''
-<p><button id="CTRL_PASSED_TESTS">Hide the PASSED</button></p>\n
+<p><button id="CTRL_PASSED_TESTS" class="danger">Hide the PASSED</button></p>\n
 ''')
 		sb2.append("<!-- 4 ################################################################### -->\n");
 		sb2.append("</body>\n")

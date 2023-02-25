@@ -11,15 +11,20 @@ import java.nio.file.Paths
 
 ReportsDirUtil rdu = new ReportsDirUtil(Paths.get("./Reports"))
 
+// find the directory where the report of latest execution of Test Suite "TS1"
 Path reportDir = rdu.getLatestTestSuiteReportDirOf("TS1")
 
 IProgressMonitor monitor = new NullProgressMonitor()
 
 TestSuiteXMLLogParser logParser = new TestSuiteXMLLogParser()
 
+// parse the "execution0.log" file to consume as input of the report
 TestSuiteLogRecord suiteLogEntity = logParser.readTestSuiteLogFromXMLFiles(reportDir.toString(), monitor)
 
-File outFolder = new File("TestSuiteReport_hidable")
+File outFolder = new File("AltTestSuiteReport")
 
-//ReportUtil.writeHtmlReport(suiteLogEntity, outFolder)
+/*
+ * compile a Test Suite report in the format slightly modified
+ */
 ReportUtilHacked.writeHtmlReport(suiteLogEntity, outFolder)
+//ReportUtil.writeHtmlReport(suiteLogEntity, outFolder)
