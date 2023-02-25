@@ -1608,6 +1608,7 @@ function stopPropagation(event) {
         event.stopPropagation();
 }
 </script>
+<!-- 0 ################################################################### -->
 <script type="text/javascript">
 window.output = {};
 </script>
@@ -1650,6 +1651,44 @@ window.settings = {"defaultLevel":"INFO","minLevel":"PASSED","reportURL":"report
 window.environment_info = 
 {"host" : "kazuakiurayama - localhost", "os" : "Mac OS X 64bit", "katalonVersion" : "8.3.0.208", "" : ""};
 </script>
+<!-- 1 ################################################################### -->
+
+<style media="all" type="text/css">
+div.hidden {
+    display: none;
+}
+    </style>
+    <script type="text/javascript">
+$(function() {
+    $("button#CTRL_PASSED_TESTS").on('click', function() {
+        console.log("the button was clicked ----------------")
+        var flag = false;
+        if ($(this).text() == 'Show the PASSED') {
+            flag = true;
+        } else {
+            flag = false;
+        }
+        $('div.test').each(function(){
+            console.log("id=" + $(this).attr('id'));
+            console.log($('div.element-header > span:first', this).hasClass('passed'))
+            if ($('div.element-header > span:first', this).hasClass('passed')) {
+                if (flag) {
+                    $(this).removeClass('hidden');
+                } else {
+                    $(this).addClass('hidden');
+                }
+            }
+        });
+        if (flag) {
+            $(this).html('Hide the PASSED')
+        } else {
+            $(this).html('Show the PASSED')
+        }
+     })
+});
+    </script>
+
+<!-- 2 ################################################################### -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -2049,5 +2088,12 @@ function addExecutionEnvironmentInfo(environment_info) {
   	
   </table>
 </script>
+
+
+<!-- 3 ################################################################### -->
+
+<p><button id="CTRL_PASSED_TESTS">Hide the PASSED</button></p>
+
+<!-- 4 ################################################################### -->
 </body>
 </html>

@@ -1,0 +1,10 @@
+{
+  "keywordFileContentHash": "073733E494D87E93E1241EE2E5F894A9",
+  "keywordClasses": [
+    {
+      "name": "com.kazurayam.ks.reporting.StringBuilderUtil",
+      "keywordMethods": []
+    }
+  ],
+  "javadocParsed": true
+}

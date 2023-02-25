@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TestCaseEntity>
    <description></description>
-   <name>compileTestSuiteReport</name>
+   <name>hackTestSuiteReport</name>
    <tag></tag>
    <comment></comment>
    <testCaseGuid>0f6adbf7-0777-4b73-a75d-bcf0795fa86b</testCaseGuid>

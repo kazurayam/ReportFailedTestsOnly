@@ -1,0 +1,14 @@
+{
+  "keywordFileContentHash": "75B4FBCA69B6E94E7AF101A969670E50",
+  "keywordClasses": [
+    {
+      "name": "com.kazurayam.ks.reporting.ReportsDirUtil",
+      "keywordMethods": []
+    },
+    {
+      "name": "com.kazurayam.ks.reporting.ReportsDirUtil$ReportsDirVisitor",
+      "keywordMethods": []
+    }
+  ],
+  "javadocParsed": true
+}
