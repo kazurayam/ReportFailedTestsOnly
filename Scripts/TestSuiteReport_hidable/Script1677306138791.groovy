@@ -5,8 +5,13 @@ import com.kms.katalon.core.logging.TestSuiteXMLLogParser
 import com.kms.katalon.core.logging.model.TestSuiteLogRecord
 import com.kms.katalon.core.reporting.ReportUtil
 import com.kazurayam.ks.reporting.ReportUtilHacked
+import com.kazurayam.ks.reporting.ReportsDirUtil
+import java.nio.file.Path
+import java.nio.file.Paths
 
-File reportDir = new File("Reports/20230222_080435/TS1/20230222_080435")
+ReportsDirUtil rdu = new ReportsDirUtil(Paths.get("./Reports"))
+
+Path reportDir = rdu.getLatestTestSuiteReportDirOf("TS1")
 
 IProgressMonitor monitor = new NullProgressMonitor()
 
@@ -14,7 +19,7 @@ TestSuiteXMLLogParser logParser = new TestSuiteXMLLogParser()
 
 TestSuiteLogRecord suiteLogEntity = logParser.readTestSuiteLogFromXMLFiles(reportDir.toString(), monitor)
 
-File outFolder = new File("compileTestSuiteReport_output")
+File outFolder = new File("TestSuiteReport_hidable")
 
 //ReportUtil.writeHtmlReport(suiteLogEntity, outFolder)
 ReportUtilHacked.writeHtmlReport(suiteLogEntity, outFolder)

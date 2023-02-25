@@ -48,9 +48,10 @@ public class ReportsDirUtil {
 				throw e;
 			}
 		}
-		
+
 		public Path getLatestTestSuiteReportDir() {
 			if (dirs.size() > 0) {
+				Collections.sort(dirs)
 				return dirs.get(dirs.size() - 1)
 			} else {
 				return null

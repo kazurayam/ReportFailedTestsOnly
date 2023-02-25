@@ -92,11 +92,9 @@ h2 {
 .not_run {
     color:#808080 !important;
 }
-
 .skipped {
     color:#808080 !important;
 }
-
 /* Top right header */
 #top-right-header {
     position: fixed;
@@ -239,7 +237,7 @@ th.stats-col-graph:hover {
     display: none;
     margin-left: 1.4em;
 }
-.suite, .test, .keyword {
+.suite, .test, .keyword, .dataBinding {
     margin-left: -0.2em;
 }
 #s1, .suite > .children > .keyword {
@@ -263,6 +261,14 @@ th.stats-col-graph:hover {
     background-image: url(data:image/gif;base64,R0lGODlhDQALAIAAAAAAAAAAACH5BAEKAAEALAAAAAANAAsAAAIZTICpYGz/nIOxwXls3VJpDGpiRlKfyS1LAQA7);
 }
 .name {
+    font-weight: bold;
+}
+.slash-iteration {
+    color: #000000 !important;
+    font-weight: bold;
+}
+.iteration {
+    color: #000000 !important;
     font-weight: bold;
 }
 .expand {
@@ -340,7 +346,7 @@ th.stats-col-graph:hover {
     text-align: left;
     white-space: nowrap;
 }
-.keyword-metadata {
+.keyword-metadata, .databinding-metadata {
     font-size: 0.9em;
 }
 /* Custom styles for statistics */
@@ -467,6 +473,13 @@ function toggleTest(testId) {
 function toggleKeyword(kwId) {
     toggleElement(kwId, ['keyword', 'message']);
 }
+function toggleDataBinding(dbId) {
+	var element = $('#' + dbId);
+    var children = element.children('.children');
+    children.toggle(100, '', function () {
+        element.children('.element-header').toggleClass('closed');
+    });
+}
 function toggleElement(elementId, childrenNames) {
     var element = $('#' + elementId);
     var children = element.children('.children');
@@ -520,6 +533,12 @@ function expandElement(item) {
     children.css({'display': 'block'});
     populateChildren(item.id, children, item.childrenNames);
     element.children('.element-header').removeClass('closed');
+    if (item.dataBindings != null && !item.dataBindings.isEmpty) {
+	    var dataBindingElement = $('#' + item.dataBindings.id);
+	    if (dataBindingElement.children('.element-header').hasClass('closed')) {
+	        toggleDataBinding(item.dataBindings.id);
+	    }
+    }
 }
 function expandElementWithId(elementid) {
     expandElement(window.testdata.findLoaded(elementid));
@@ -826,6 +845,11 @@ window.model = (function () {
             id: data.parent ? data.parent.id + '-' + data.id : data.id
         };
     }
+    function htmlDecode(input) {
+	  var doc = new DOMParser().parseFromString(input, "text/html");
+	  parts = doc.documentElement.textContent.replace('\n','');
+	  return JSON.parse(parts);
+	}  
     function Test(data) {
         var test = createModelObject(data);
         test.fullName = data.parent.fullName + '/' + test.name;
@@ -841,9 +865,13 @@ window.model = (function () {
         };
         test.isCritical = data.isCritical;
         test.tags = data.tags;
-        test.tag = data.tag;        
-        test.retriedTimes = data.retriedTimes;
+        test.tag = data.tag;
         test.message = data.message;
+        test.retriedTimes = data.retriedTimes;
+        test.iteration = data.iteration
+        var dataBindings = {'id': test.id + "-dataBinding", 'data': htmlDecode(data.dataBindings)};
+        dataBindings.isEmpty = dataBindings.data && Object.keys(dataBindings.data).length === 0 && Object.getPrototypeOf(dataBindings.data) === Object.prototype
+        test.dataBindings = dataBindings;
         test.matchesTagPattern = function (pattern) {
             return containsTagPattern(test.tags, pattern);
         };
@@ -1270,7 +1298,7 @@ window.testdata = function () {
         return util.map(taglist, strings.get);
     }
     function createTest(parent, element, strings, index) {
-        var statusElement = element[7];
+        var statusElement = element[9];
         var test = model.Test({
             parent: parent,
             id: 't' + (index + 1),
@@ -1288,13 +1316,15 @@ window.testdata = function () {
                 this.message = function () { return msg; };
                 return msg;
             },
+            iteration: strings.get(element[6]),
+            dataBindings: strings.get(element[7]),
             times: model.Times(times(statusElement)),
-            tags: tags(element[6], strings),			
-            retriedTimes: strings.get(element[5]),
+            tags: tags(element[8], strings),
+			retriedTimes: strings.get(element[5]),
             tag: strings.get(element[4]),
-            isChildrenLoaded: typeof(element[8]) !== 'number'
+            isChildrenLoaded: typeof(element[10]) !== 'number'
         });
-        lazyPopulateKeywordsFromFile(test, element[8], strings);
+        lazyPopulateKeywordsFromFile(test, element[10], strings);
         return test;
     }
     function createMessage(statusElement, strings) {
@@ -1349,9 +1379,9 @@ window.testdata = function () {
 		if(stats.length >= 5){
 			sum_stats.totalIncomplete = stats[4];		
 		}
-        if(stats.length >= 6) {
-            sum_stats.totalSkipped = stats[5];
-        }
+		if(stats.length >= 6){
+			sum_stats.totalSkipped = stats[5];		
+		}
 		return sum_stats;
     }
     function Populator(items, strings, creator) {
@@ -1596,7 +1626,7 @@ $.template('suiteStatusMessageTemplate',
     '<span class="passed">${totalPassed} passed</span>' + ', ' +    
     '<span class="failed">${totalFailed} failed</span>' + ', ' +
 	'<span class="error">{{if totalError}}${totalError}{{else}}0{{/if}} error</span>' + ', ' +
-	'<span class="incomplete">{{if totalIncomplete}}${totalIncomplete}{{else}}0{{/if}} incomplete</span>' + ', ' +
+	'<span class="incomplete">{{if totalIncomplete}}${totalIncomplete}{{else}}0{{/if}} incomplete</span>'+ ', ' +
     '<span class="skipped">{{if totalSkipped}}${totalSkipped}{{else}}0{{/if}} skipped</span>'
 );
 // For complete cross-browser experience..
@@ -1608,14 +1638,14 @@ function stopPropagation(event) {
         event.stopPropagation();
 }
 </script>
-<!-- 0 ################################################################### -->
+
 <script type="text/javascript">
 window.output = {};
 </script>
 
 <script type="text/javascript">
 window.output["suite"] = 
-[1,2,3,0,[],[1,1677020678634,827,4],[],[[5,0,0,6,7,8,[],[1,1677020679013,204,9],[[0,14,0,15,0,[1,1677020679147,39],[],[[1677020679182,1,16]]]]],[10,0,0,11,12,13,[],[0,1677020679256,205],[[0,17,0,18,0,[0,1677020679344,114],[],[[1677020679458,4,19]]]]]],[],[2,1,1,0,0,0]];
+[1,2,3,0,[],[1,1677306601959,1466,4],[],[[5,0,0,6,7,8,9,10,[],[0,1677306602388,271],[[0,67,0,68,0,[0,1677306602531,119],[],[[1677306602649,4,69]]]]],[11,0,0,12,13,14,15,16,[],[0,1677306602678,152],[[0,70,0,71,0,[0,1677306602815,12],[],[[1677306602825,4,72]]]]],[17,0,0,18,19,20,21,23,[],[1,1677306602845,105,22],[[0,73,0,74,0,[1,1677306602914,23],[],[[1677306602933,1,75]]]]],[24,0,0,25,26,27,28,29,[],[0,1677306602957,59],[[0,76,0,77,0,[0,1677306603010,4],[],[[1677306603013,4,78]]]]],[30,0,0,31,32,33,34,35,[],[0,1677306603021,68],[[0,79,0,80,0,[0,1677306603080,8],[],[[1677306603088,4,81]]]]],[36,0,0,37,38,39,40,41,[],[0,1677306603096,40],[[0,82,0,83,0,[0,1677306603131,4],[],[[1677306603134,4,84]]]]],[42,0,0,43,44,45,46,47,[],[0,1677306603141,48],[[0,85,0,86,0,[0,1677306603185,3],[],[[1677306603188,4,87]]]]],[48,0,0,49,50,51,52,53,[],[0,1677306603201,85],[[0,88,0,89,0,[0,1677306603271,14],[],[[1677306603284,4,90]]]]],[54,0,0,55,56,57,58,59,[],[0,1677306603297,38],[[0,91,0,92,0,[0,1677306603331,3],[],[[1677306603333,4,93]]]]],[60,0,0,61,62,63,64,66,[],[1,1677306603340,85,65],[[0,94,0,95,0,[1,1677306603413,6],[],[[1677306603416,1,96]]]]]],[],[10,8,2,0,0,0]];
 </script>
 
 <script type="text/javascript">
@@ -1624,7 +1654,7 @@ window.output["strings"] = [];
 
 <script type="text/javascript">
 window.output["strings"] = window.output["strings"].concat([
-"*","*TS1","*","*","*Test Cases/FailingTC FAILED.\nReason:\ncom.kms.katalon.core.exception.StepFailedException: I am bad\n\tat com.kms.katalon.core.util.KeywordUtil.markFailed(KeywordUtil.java:19)\n\tat com.kms.katalon.core.util.KeywordUtil$markFailed.call(Unknown Source)\n\tat FailingTC.run(FailingTC:3)\n\tat com.kms.katalon.core.main.ScriptEngine.run(ScriptEngine.java:194)\n\tat com.kms.katalon.core.main.ScriptEngine.runScriptAsRawText(ScriptEngine.java:119)\n\tat com.kms.katalon.core.main.TestCaseExecutor.runScript(TestCaseExecutor.java:445)\n\tat com.kms.katalon.core.main.TestCaseExecutor.doExecute(TestCaseExecutor.java:436)\n\tat com.kms.katalon.core.main.TestCaseExecutor.processExecutionPhase(TestCaseExecutor.java:415)\n\tat com.kms.katalon.core.main.TestCaseExecutor.accessMainPhase(TestCaseExecutor.java:407)\n\tat com.kms.katalon.core.main.TestCaseExecutor.execute(TestCaseExecutor.java:284)\n\tat com.kms.katalon.core.common.CommonExecutor.accessTestCaseMainPhase(CommonExecutor.java:65)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.accessTestSuiteMainPhase(TestSuiteExecutor.java:144)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.execute(TestSuiteExecutor.java:106)\n\tat com.kms.katalon.core.main.TestCaseMain.startTestSuite(TestCaseMain.java:185)\n\tat com.kms.katalon.core.main.TestCaseMain$startTestSuite$0.call(Unknown Source)\n\tat TempTestSuite1677020675271.run(TempTestSuite1677020675271.groovy:36)\n","*Test Cases/FailingTC","*","*","*0","*Test Cases/FailingTC FAILED.\nReason:\ncom.kms.katalon.core.exception.StepFailedException: I am bad\n\tat com.kms.katalon.core.util.KeywordUtil.markFailed(KeywordUtil.java:19)\n\tat com.kms.katalon.core.util.KeywordUtil$markFailed.call(Unknown Source)\n\tat FailingTC.run(FailingTC:3)\n\tat com.kms.katalon.core.main.ScriptEngine.run(ScriptEngine.java:194)\n\tat com.kms.katalon.core.main.ScriptEngine.runScriptAsRawText(ScriptEngine.java:119)\n\tat com.kms.katalon.core.main.TestCaseExecutor.runScript(TestCaseExecutor.java:445)\n\tat com.kms.katalon.core.main.TestCaseExecutor.doExecute(TestCaseExecutor.java:436)\n\tat com.kms.katalon.core.main.TestCaseExecutor.processExecutionPhase(TestCaseExecutor.java:415)\n\tat com.kms.katalon.core.main.TestCaseExecutor.accessMainPhase(TestCaseExecutor.java:407)\n\tat com.kms.katalon.core.main.TestCaseExecutor.execute(TestCaseExecutor.java:284)\n\tat com.kms.katalon.core.common.CommonExecutor.accessTestCaseMainPhase(CommonExecutor.java:65)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.accessTestSuiteMainPhase(TestSuiteExecutor.java:144)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.execute(TestSuiteExecutor.java:106)\n\tat com.kms.katalon.core.main.TestCaseMain.startTestSuite(TestCaseMain.java:185)\n\tat com.kms.katalon.core.main.TestCaseMain$startTestSuite$0.call(Unknown Source)\n\tat TempTestSuite1677020675271.run(TempTestSuite1677020675271.groovy:36)\n","*Test Cases/PassingTC","*","*","*0","*markFailed(\&quot;I am bad\&quot;)","*","*I am bad","*comment(\&quot;I am OK\&quot;)","*","*I am OK"]);
+"*","*TS1","*","*","*Test Cases/FailingTC2 FAILED.\nReason:\ncom.kms.katalon.core.exception.StepFailedException: I am bad\n\tat com.kms.katalon.core.util.KeywordUtil.markFailed(KeywordUtil.java:19)\n\tat com.kms.katalon.core.util.KeywordUtil$markFailed.call(Unknown Source)\n\tat FailingTC2.run(FailingTC2:3)\n\tat com.kms.katalon.core.main.ScriptEngine.run(ScriptEngine.java:194)\n\tat com.kms.katalon.core.main.ScriptEngine.runScriptAsRawText(ScriptEngine.java:119)\n\tat com.kms.katalon.core.main.TestCaseExecutor.runScript(TestCaseExecutor.java:445)\n\tat com.kms.katalon.core.main.TestCaseExecutor.doExecute(TestCaseExecutor.java:436)\n\tat com.kms.katalon.core.main.TestCaseExecutor.processExecutionPhase(TestCaseExecutor.java:415)\n\tat com.kms.katalon.core.main.TestCaseExecutor.accessMainPhase(TestCaseExecutor.java:407)\n\tat com.kms.katalon.core.main.TestCaseExecutor.execute(TestCaseExecutor.java:284)\n\tat com.kms.katalon.core.common.CommonExecutor.accessTestCaseMainPhase(CommonExecutor.java:65)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.accessTestSuiteMainPhase(TestSuiteExecutor.java:144)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.execute(TestSuiteExecutor.java:106)\n\tat com.kms.katalon.core.main.TestCaseMain.startTestSuite(TestCaseMain.java:185)\n\tat com.kms.katalon.core.main.TestCaseMain$startTestSuite$0.call(Unknown Source)\n\tat TempTestSuite1677306598620.run(TempTestSuite1677306598620.groovy:36)\n","*Test Cases/PassingTC1","*","*","*0","*","*[]","*Test Cases/PassingTC2","*","*","*0","*","*[]","*Test Cases/FailingTC1","*","*","*0","*","*Test Cases/FailingTC1 FAILED.\nReason:\ncom.kms.katalon.core.exception.StepFailedException: I am bad\n\tat com.kms.katalon.core.util.KeywordUtil.markFailed(KeywordUtil.java:19)\n\tat com.kms.katalon.core.util.KeywordUtil$markFailed.call(Unknown Source)\n\tat FailingTC1.run(FailingTC1:3)\n\tat com.kms.katalon.core.main.ScriptEngine.run(ScriptEngine.java:194)\n\tat com.kms.katalon.core.main.ScriptEngine.runScriptAsRawText(ScriptEngine.java:119)\n\tat com.kms.katalon.core.main.TestCaseExecutor.runScript(TestCaseExecutor.java:445)\n\tat com.kms.katalon.core.main.TestCaseExecutor.doExecute(TestCaseExecutor.java:436)\n\tat com.kms.katalon.core.main.TestCaseExecutor.processExecutionPhase(TestCaseExecutor.java:415)\n\tat com.kms.katalon.core.main.TestCaseExecutor.accessMainPhase(TestCaseExecutor.java:407)\n\tat com.kms.katalon.core.main.TestCaseExecutor.execute(TestCaseExecutor.java:284)\n\tat com.kms.katalon.core.common.CommonExecutor.accessTestCaseMainPhase(CommonExecutor.java:65)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.accessTestSuiteMainPhase(TestSuiteExecutor.java:144)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.execute(TestSuiteExecutor.java:106)\n\tat com.kms.katalon.core.main.TestCaseMain.startTestSuite(TestCaseMain.java:185)\n\tat com.kms.katalon.core.main.TestCaseMain$startTestSuite$0.call(Unknown Source)\n\tat TempTestSuite1677306598620.run(TempTestSuite1677306598620.groovy:36)\n","*[]","*Test Cases/PassingTC3","*","*","*0","*","*[]","*Test Cases/PassingTC4","*","*","*0","*","*[]","*Test Cases/PassingTC5","*","*","*0","*","*[]","*Test Cases/PassingTC6","*","*","*0","*","*[]","*Test Cases/PassingTC7","*","*","*0","*","*[]","*Test Cases/PassingTC8","*","*","*0","*","*[]","*Test Cases/FailingTC2","*","*","*0","*","*Test Cases/FailingTC2 FAILED.\nReason:\ncom.kms.katalon.core.exception.StepFailedException: I am bad\n\tat com.kms.katalon.core.util.KeywordUtil.markFailed(KeywordUtil.java:19)\n\tat com.kms.katalon.core.util.KeywordUtil$markFailed.call(Unknown Source)\n\tat FailingTC2.run(FailingTC2:3)\n\tat com.kms.katalon.core.main.ScriptEngine.run(ScriptEngine.java:194)\n\tat com.kms.katalon.core.main.ScriptEngine.runScriptAsRawText(ScriptEngine.java:119)\n\tat com.kms.katalon.core.main.TestCaseExecutor.runScript(TestCaseExecutor.java:445)\n\tat com.kms.katalon.core.main.TestCaseExecutor.doExecute(TestCaseExecutor.java:436)\n\tat com.kms.katalon.core.main.TestCaseExecutor.processExecutionPhase(TestCaseExecutor.java:415)\n\tat com.kms.katalon.core.main.TestCaseExecutor.accessMainPhase(TestCaseExecutor.java:407)\n\tat com.kms.katalon.core.main.TestCaseExecutor.execute(TestCaseExecutor.java:284)\n\tat com.kms.katalon.core.common.CommonExecutor.accessTestCaseMainPhase(CommonExecutor.java:65)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.accessTestSuiteMainPhase(TestSuiteExecutor.java:144)\n\tat com.kms.katalon.core.main.TestSuiteExecutor.execute(TestSuiteExecutor.java:106)\n\tat com.kms.katalon.core.main.TestCaseMain.startTestSuite(TestCaseMain.java:185)\n\tat com.kms.katalon.core.main.TestCaseMain$startTestSuite$0.call(Unknown Source)\n\tat TempTestSuite1677306598620.run(TempTestSuite1677306598620.groovy:36)\n","*[]","*comment(\&quot;I am OK\&quot;)","*","*I am OK","*comment(\&quot;I am OK\&quot;)","*","*I am OK","*markFailed(\&quot;I am bad\&quot;)","*","*I am bad","*comment(\&quot;I am OK\&quot;)","*","*I am OK","*comment(\&quot;I am OK\&quot;)","*","*I am OK","*comment(\&quot;I am OK\&quot;)","*","*I am OK","*comment(\&quot;I am OK\&quot;)","*","*I am OK","*comment(\&quot;I am OK\&quot;)","*","*I am OK","*comment(\&quot;I am OK\&quot;)","*","*I am OK","*markFailed(\&quot;I am bad\&quot;)","*","*I am bad"]);
 </script>
 
 <script type="text/javascript">
@@ -1651,44 +1681,6 @@ window.settings = {"defaultLevel":"INFO","minLevel":"PASSED","reportURL":"report
 window.environment_info = 
 {"host" : "kazuakiurayama - localhost", "os" : "Mac OS X 64bit", "katalonVersion" : "8.3.0.208", "" : ""};
 </script>
-<!-- 1 ################################################################### -->
-
-<style media="all" type="text/css">
-div.hidden {
-    display: none;
-}
-    </style>
-    <script type="text/javascript">
-$(function() {
-    $("button#CTRL_PASSED_TESTS").on('click', function() {
-        console.log("the button was clicked ----------------")
-        var flag = false;
-        if ($(this).text() == 'Show the PASSED') {
-            flag = true;
-        } else {
-            flag = false;
-        }
-        $('div.test').each(function(){
-            console.log("id=" + $(this).attr('id'));
-            console.log($('div.element-header > span:first', this).hasClass('passed'))
-            if ($('div.element-header > span:first', this).hasClass('passed')) {
-                if (flag) {
-                    $(this).removeClass('hidden');
-                } else {
-                    $(this).addClass('hidden');
-                }
-            }
-        });
-        if (flag) {
-            $(this).html('Hide the PASSED')
-        } else {
-            $(this).html('Show the PASSED')
-        }
-     })
-});
-    </script>
-
-<!-- 2 ################################################################### -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -1732,7 +1724,9 @@ $(document).ready(function() {
 		toggleSuite('s1')
 	}
 	$("#s1").find("div[id*='s1-t']").each(function(){
-		toggleTest(this.id);
+		if (!this.id.includes('dataBinding')) {
+      		toggleTest(this.id);
+    	}
 	});
     
 });
@@ -1932,6 +1926,10 @@ function addExecutionEnvironmentInfo(environment_info) {
     <div class="element-header closed" onclick="toggleTest('${id}')" title="{{html fullName}}">
       <span class="${status.toLowerCase()}">TEST CASE: </span>
       <span class="name">{{html name}}</span>
+      {{if iteration}}
+        <span class="slash-iteration">/<span>
+        <span class="iteration">{{html iteration}}</span>
+      {{/if}}
       <a class="expand" title="Expand this test fully"
          href="javascript:expandAllChildren('${id}')"
          onclick="stopPropagation(event)">Expand All</a>
@@ -1974,13 +1972,37 @@ function addExecutionEnvironmentInfo(environment_info) {
           <td>{{html retriedTimes}}</td>
         </tr>
         {{/if}}
+        
         {{if message()}}
         <tr>
           <th>Message:</th>
           <td class="message">{{html message()}}</td>
         </tr>
         {{/if}}
-      </table>
+        </table>
+     	{{if (dataBindings != null && !dataBindings.isEmpty)}}
+     		{{if dataBindings.data.length > 0}}
+        		{{tmpl(dataBindings) '#dataBindingTemplate'}}
+        	{{/if}}
+    	{{/if}}
+    </div>
+  </div>
+</script>
+
+<script type="text/x-jquery-tmpl" id="dataBindingTemplate">
+  <div id="${id}" class="dataBinding">
+    <div class="element-header closed" onclick="toggleDataBinding('${id}')">
+        <span style="color:#009900 !important">DATA BINDING:</span>
+    </div>
+    <div class="children">
+        <table class="metadata databinding-metadata">
+            {{each data }}
+		            <tr>
+		                <th title="${name}">${displayReportName}</th>
+		                <td>${value}<td>
+		            </tr>
+		    {{/each}}
+        </table>
     </div>
   </div>
 </script>
@@ -2088,12 +2110,5 @@ function addExecutionEnvironmentInfo(environment_info) {
   	
   </table>
 </script>
-
-
-<!-- 3 ################################################################### -->
-
-<p><button id="CTRL_PASSED_TESTS">Hide the PASSED</button></p>
-
-<!-- 4 ################################################################### -->
 </body>
 </html>
