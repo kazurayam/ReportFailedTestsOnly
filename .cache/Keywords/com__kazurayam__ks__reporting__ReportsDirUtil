@@ -1,5 +1,5 @@
 {
-  "keywordFileContentHash": "75B4FBCA69B6E94E7AF101A969670E50",
+  "keywordFileContentHash": "F0A766FBDF4EF0C7B24D6A6F5DFA70F5",
   "keywordClasses": [
     {
       "name": "com.kazurayam.ks.reporting.ReportsDirUtil",
@@ -10,5 +10,5 @@
       "keywordMethods": []
     }
   ],
-  "javadocParsed": true
+  "javadocParsed": false
 }

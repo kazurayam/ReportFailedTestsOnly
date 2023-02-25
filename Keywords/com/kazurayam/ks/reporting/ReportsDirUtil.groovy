@@ -1,52 +1,58 @@
 package com.kazurayam.ks.reporting
 
-import static com.kms.katalon.core.checkpoint.CheckpointFactory.findCheckpoint
-import static com.kms.katalon.core.testcase.TestCaseFactory.findTestCase
-import static com.kms.katalon.core.testdata.TestDataFactory.findTestData
-import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
-import static com.kms.katalon.core.testobject.ObjectRepository.findWindowsObject
-
-import com.kms.katalon.core.annotation.Keyword
-import com.kms.katalon.core.checkpoint.Checkpoint
-import com.kms.katalon.core.cucumber.keyword.CucumberBuiltinKeywords as CucumberKW
-import com.kms.katalon.core.mobile.keyword.MobileBuiltInKeywords as Mobile
-import com.kms.katalon.core.model.FailureHandling
-import com.kms.katalon.core.testcase.TestCase
-import com.kms.katalon.core.testdata.TestData
-import com.kms.katalon.core.testobject.TestObject
-import com.kms.katalon.core.webservice.keyword.WSBuiltInKeywords as WS
-import com.kms.katalon.core.webui.keyword.WebUiBuiltInKeywords as WebUI
-import com.kms.katalon.core.windows.keyword.WindowsBuiltinKeywords as Windows
-
-import internal.GlobalVariable
-import java.nio.file.Path
+import java.nio.file.FileVisitResult
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
-import java.nio.file.FileVisitor
-
 
 public class ReportsDirUtil {
 
 	private Path reportsDir
 
 	public ReportsDirUtil(Path reportsDir) {
+		assert Objects.requireNonNull(reportsDir)
 		assert Files.exists(reportsDir)
 		this.reportsDir = reportsDir
 	}
 
 	public Path getLatestTestSuiteReportDirOf(String testSuiteName) {
-		FileVisitor visitor = new ReportsDirVisitor(testSuiteName)
+		Objects.requireNonNull(testSuiteName)
+		ReportsDirVisitor visitor = new ReportsDirVisitor(testSuiteName)
 		Files.walkFileTree(reportsDir, visitor)
 		return visitor.getLatestTestSuiteReportDir()
 	}
 
-	class ReportsDirVisitor extends SimpleFileVisitor {
+	
+	/*
+	 * 
+	 */
+	class ReportsDirVisitor extends SimpleFileVisitor<Path> {
 		private String testSuiteName
+		private List<Path> dirs
+		
 		public ReportsDirVisitor(String tsn) {
 			this.testSuiteName = tsn
+			this.dirs = new ArrayList<Path>()
 		}
-		public getLatestTestSuiteReportDir() {
-			return null
+		
+		public Path getLatestTestSuiteReportDir() {
+			if (dirs.size() > 0) {
+				return dirs.get(dirs.size() - 1)
+			} else {
+				return null
+			}
+		}
+		
+		@Override
+		public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+			if (e == null) {
+				if (dir.getParent().getFileName().toString() == testSuiteName) {
+					dirs.add(dir)
+				}
+			} else {
+				// directory iteration failed
+				throw e;
+			}
 		}
 	}
 }
