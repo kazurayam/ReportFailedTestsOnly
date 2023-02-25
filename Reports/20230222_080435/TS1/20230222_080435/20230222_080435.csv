@@ -1,0 +1,8 @@
+Suite/Test/Step Name,Browser,Description,Tag,Start time,End time,Duration,Status
+TS1,,,,2023-02-22 08:04:38,2023-02-22 08:04:39,0.827s,FAILED
+,,,,,,,
+Test Cases/FailingTC,,,,2023-02-22 08:04:39,2023-02-22 08:04:39,0.204s,FAILED
+"markFailed(""I am bad"")",,,,2023-02-22 08:04:39,2023-02-22 08:04:39,0.039s,FAILED
+,,,,,,,
+Test Cases/PassingTC,,,,2023-02-22 08:04:39,2023-02-22 08:04:39,0.205s,PASSED
+"comment(""I am OK"")",,,,2023-02-22 08:04:39,2023-02-22 08:04:39,0.114s,PASSED
