@@ -2,8 +2,9 @@ import org.eclipse.core.runtime.IProgressMonitor
 import org.eclipse.core.runtime.NullProgressMonitor
 
 import com.kms.katalon.core.logging.TestSuiteXMLLogParser
-import com.kms.katalon.core.reporting.ReportUtil
 import com.kms.katalon.core.logging.model.TestSuiteLogRecord
+import com.kms.katalon.core.reporting.ReportUtil
+import com.kazurayam.ks.reporting.HackingReportUtil
 
 File reportDir = new File("Reports/20230222_080435/TS1/20230222_080435")
 
@@ -15,5 +16,5 @@ TestSuiteLogRecord suiteLogEntity = logParser.readTestSuiteLogFromXMLFiles(repor
 
 File outFolder = new File("compileTestSuiteReport_output")
 
-ReportUtil.writeHtmlReport(suiteLogEntity, outFolder)
-
+//ReportUtil.writeHtmlReport(suiteLogEntity, outFolder)
+HackingReportUtil.writeHtmlReport(suiteLogEntity, outFolder)

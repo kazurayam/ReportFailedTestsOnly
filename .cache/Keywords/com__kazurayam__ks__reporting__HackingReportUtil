@@ -1,0 +1,10 @@
+{
+  "keywordFileContentHash": "C579B3B1EC1DCAF02D79A5D43F1EE6E7",
+  "keywordClasses": [
+    {
+      "name": "com.kazurayam.ks.reporting.HackingReportUtil",
+      "keywordMethods": []
+    }
+  ],
+  "javadocParsed": true
+}
